@@ -1,5 +1,9 @@
 module Horde
 
-greet() = print("Hello World!")
+include("GVF/Cumulants.jl")
+include("GVF/Discounts.jl")
+include("GVF/Policies.jl")
+include("GVF/GVF.jl")
+
 
 end # module
