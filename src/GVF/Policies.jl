@@ -1,3 +1,5 @@
+export NullPolicy
+
 import Base.get
 
 abstract type AbstractPolicy <: AbstractParameterFunction end
