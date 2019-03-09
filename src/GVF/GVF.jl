@@ -5,8 +5,6 @@ import Base.get
 
 abstract type AbstractParameterFunction end
 
-
-
 function get(apf::AbstractParameterFunction, state_t, action_t, state_tp1, action_tp1, preds_tilde) end
 
 function call(apf::AbstractParameterFunction, state_t, action_t, state_tp1, action_tp1, preds_tilde)
