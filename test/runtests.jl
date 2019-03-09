@@ -1,5 +1,6 @@
 
 using Test
+using Horde
 
 function example_test()
     # Test stuff here.
