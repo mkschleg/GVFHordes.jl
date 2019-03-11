@@ -1,5 +1,6 @@
 import Base.get
 
+
 abstract type AbstractParameterFunction end
 
 function get(apf::AbstractParameterFunction, state_t, action_t, state_tp1, action_tp1, preds_tilde) end
@@ -12,13 +13,20 @@ end
 # function get(apf::AbstractParameterFunction, args...; kwargs...) end
 # call(apf::AbstractParameterFunction, args...; kwargs...) = get(apf, args; kwargs)
 
+include("GVFArgs.jl")
+export GVFArgs
+
 include("Discounts.jl")
 include("Cumulants.jl")
 include("Policies.jl")
 
 abstract type AbstractGVF end
 
-function get(gvf::AbstractGVF, state_t, action_t, state_tp1, action_tp1, preds_tilde) end
+function get(gvf::AbstractGVF, args::GVFArgs) end
+get(gvf::AbstractGVF, state_t::S, action_t::A, state_tp1::S) where {S,A} = get(GVFArgs(state_t, action_t, state_tp1))
+get(gvf::AbstractGVF, state_t::S,state_tp1::S) where {S} = get(GVFArgs(state_t, state_tp1))
+get(gvf::AbstractGVF, state_t::S,action_t::A,state_tp1::S,preds_tilde::P) where {S,A,P} = get(GVFArgs(state_t, action_t, state_tp1, preds_tilde))
+
 
 struct GVF{C<:AbstractCumulant, D<:AbstractDiscount, P<:AbstractPolicy} <: AbstractGVF
     cumulant::C
@@ -26,32 +34,9 @@ struct GVF{C<:AbstractCumulant, D<:AbstractDiscount, P<:AbstractPolicy} <: Abstr
     policy::P
 end
 
-function get(gvf::GVF, state_t, action_t, state_tp1, action_tp1, preds_tilde)
-    c = get(gvf.cumulant, state_t, action_t, state_tp1, action_tp1, preds_tilde)
-    γ = get(gvf.discount, state_t, action_t, state_tp1, action_tp1, preds_tilde)
-    π_prob = get(gvf.policy, state_t, action_t, state_tp1, action_tp1, preds_tilde)
+function get(gvf::GVF, args::GVFArgs)
+    c = get(gvf.cumulant, args)
+    γ = get(gvf.discount, args)
+    π_prob = get(gvf.policy, args)
     return c, γ, π_prob
 end
-
-get(gvf::GVF, state_t, action_t, state_tp1, preds_tilde) =
-    get(gvf::GVF, state_t, action_t, state_tp1, nothing, preds_tilde)
-
-
-struct PredictionGVF{C<:AbstractCumulant, D<:AbstractDiscount} <: AbstractGVF
-    cumulant::C
-    discount::D
-    policy::NullPolicy
-end
-
-PredictionGVF(cumulant::AbstractCumulant, discount::AbstractDiscount) = PredictionGVF(cumulant, discount, NullPolicy())
-
-function get(gvf::PredictionGVF, state_tp1)
-    c = get(gvf.cumulant, state_tp1)
-    γ = get(gvf.discount)
-    π_prob = get(gvf.policy, state_tp1)
-    return c, γ, π_prob
-end
-
-get(gvf::PredictionGVF, state_t, action_t, state_tp1, action_tp1, preds_tilde) = get(gvf, state_tp1)
-
-
