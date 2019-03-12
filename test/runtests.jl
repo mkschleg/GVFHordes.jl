@@ -49,16 +49,6 @@ end
 
 function horde_tests()
     @testset "Horde Tests" begin
-        # @testset "GVFHorde" begin
-        #     @test test_construction(GVFHorde, [FeatureCumulant(1), FeatureCumulant(2)],
-        #                             [ConstantDiscount(0.9), ConstantDiscount(0.8)],
-        #                             [NullPolicy(), NullPolicy()])
-
-        #     gvfc = GVFHorde([FeatureCumulant(1), FeatureCumulant(2)],
-        #                     [ConstantDiscount(0.9), ConstantDiscount(0.8)],
-        #                     [NullPolicy(), NullPolicy()])
-        #     @test all(get(gvfc, [5,5,5], 1, [1,2,3], nothing, nothing) .== [[1,2],[0.9, 0.8], [1.0, 1.0]])
-        # end
         @testset "GVFHorde" begin
             @test test_construction(GVFHorde,
                                     [GVF(FeatureCumulant(1), ConstantDiscount(0.9), NullPolicy()),
