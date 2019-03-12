@@ -1,6 +1,7 @@
 
 using Test
 using Horde
+# using BenchmarkTools
 
 function example_test()
     # Test stuff here.
@@ -41,16 +42,25 @@ function gvf_tests()
             @test all(get(gvf, [5,5,5], 1, [1,2,3], [0.1, 0.2, 0.3]) .== [2, 0.78, 1.0])
             @test all(get(gvf, [5,5,5], 1, [1,2,3], 2, [0.1,0.2,0.3]) .== [2, 0.78, 1.0])
         end
+        # Previous implementation.
+        # @testset "GVFHorde" begin
+        #     @test test_construction(GVFHorde, [FeatureCumulant(1), FeatureCumulant(2)],
+        #                             [ConstantDiscount(0.9), ConstantDiscount(0.8)],
+        #                             [NullPolicy(), NullPolicy()])
 
-        @testset "GVFCollection" begin
-            @test test_construction(GVFCollection, [FeatureCumulant(1), FeatureCumulant(2)],
-                                    [ConstantDiscount(0.9), ConstantDiscount(0.8)],
-                                    [NullPolicy(), NullPolicy()])
+        #     gvfc = GVFHorde([FeatureCumulant(1), FeatureCumulant(2)],
+        #                     [ConstantDiscount(0.9), ConstantDiscount(0.8)],
+        #                     [NullPolicy(), NullPolicy()])
+        #     @test all(get(gvfc, [5,5,5], 1, [1,2,3], nothing, nothing) .== [[1,2],[0.9, 0.8], [1.0, 1.0]])
+        # end
+        @testset "GVFHorde" begin
+            @test test_construction(GVFHorde,
+                                    [GVF(FeatureCumulant(1), ConstantDiscount(0.9), NullPolicy()),
+                                     GVF(FeatureCumulant(2), ConstantDiscount(0.8), NullPolicy())])
 
-            gvfc = GVFCollection([FeatureCumulant(1), FeatureCumulant(2)],
-                                    [ConstantDiscount(0.9), ConstantDiscount(0.8)],
-                                    [NullPolicy(), NullPolicy()])
-            @test all(get(gvfc, [5,5,5], 1, [1,2,3]) .== [[1,2],[0.9, 0.8], [1.0, 1.0]])
+            gvfc = GVFHorde([GVF(FeatureCumulant(1), ConstantDiscount(0.9), NullPolicy()),
+                             GVF(FeatureCumulant(2), ConstantDiscount(0.8), NullPolicy())])
+            @test all(get(gvfc, [5,5,5], 1, [1,2,3], nothing, nothing) .== [[1,2],[0.9, 0.8], [1.0, 1.0]])
         end
     end
 end
