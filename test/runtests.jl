@@ -41,6 +41,17 @@ function gvf_tests()
             @test all(get(gvf, [5,5,5], 1, [1,2,3], [0.1, 0.2, 0.3]) .== [2, 0.78, 1.0])
             @test all(get(gvf, [5,5,5], 1, [1,2,3], 2, [0.1,0.2,0.3]) .== [2, 0.78, 1.0])
         end
+
+        @testset "GVFCollection" begin
+            @test test_construction(GVFCollection, [FeatureCumulant(1), FeatureCumulant(2)],
+                                    [ConstantDiscount(0.9), ConstantDiscount(0.8)],
+                                    [NullPolicy(), NullPolicy()])
+
+            gvfc = GVFCollection([FeatureCumulant(1), FeatureCumulant(2)],
+                                    [ConstantDiscount(0.9), ConstantDiscount(0.8)],
+                                    [NullPolicy(), NullPolicy()])
+            @test all(get(gvfc, [5,5,5], 1, [1,2,3]) .== [[1,2],[0.9, 0.8], [1.0, 1.0]])
+        end
     end
 end
 

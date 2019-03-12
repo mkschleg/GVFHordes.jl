@@ -20,6 +20,12 @@ abstract type AbstractGVF end
 
 function get(gvf::AbstractGVF, state_t, action_t, state_tp1, action_tp1, preds_tilde) end
 
+get(gvf::AbstractGVF, state_t, action_t, state_tp1, preds_tilde) =
+    get(gvf::AbstractGVF, state_t, action_t, state_tp1, nothing, preds_tilde)
+
+get(gvf::AbstractGVF, state_t, action_t, state_tp1) =
+    get(gvf::AbstractGVF, state_t, action_t, state_tp1, nothing, nothing)
+
 struct GVF{C<:AbstractCumulant, D<:AbstractDiscount, P<:AbstractPolicy} <: AbstractGVF
     cumulant::C
     discount::D
@@ -33,8 +39,15 @@ function get(gvf::GVF, state_t, action_t, state_tp1, action_tp1, preds_tilde)
     return c, γ, π_prob
 end
 
-get(gvf::GVF, state_t, action_t, state_tp1, preds_tilde) =
-    get(gvf::GVF, state_t, action_t, state_tp1, nothing, preds_tilde)
+struct GVFCollection{C<:AbstractCumulant, D<:AbstractDiscount, P<:AbstractPolicy} <: AbstractGVF
+    cumulants::Vector{C}
+    discounts::Vector{D}
+    policies::Vector{P}
+end
 
-get(gvf::GVF, state_t, action_t, state_tp1) =
-    get(gvf::GVF, state_t, action_t, state_tp1, nothing, nothing)
+function get(gvfc::GVFCollection, state_t, action_t, state_tp1, action_tp1, preds_tilde)
+    C = map(c -> get(c, state_t, action_t, state_tp1, action_tp1, preds_tilde), gvfc.cumulants)
+    Γ = map(γ -> get(γ, state_t, action_t, state_tp1, action_tp1, preds_tilde), gvfc.discounts)
+    Π_probs = map(π -> get(π, state_t, action_t, state_tp1, action_tp1, preds_tilde), gvfc.policies)
+    return C, Γ, Π_probs
+end
