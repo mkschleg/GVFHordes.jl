@@ -32,13 +32,21 @@ function test_construction(obj_class, args...)
 end
 
 function gvf_tests()
-    @testset "GVFArgs Tests" begin
-        @test test_construction(GVFArgs, rand(3), 1, rand(3), 3, rand(5))
-        @test test_construction(GVFArgs, rand(3), 1, rand(3), 3, complex.(rand(5),rand(5)))
-        @test test_construction(GVFArgs, rand(3), 1, rand(3), rand(5))
-        @test test_construction(GVFArgs, rand(3), 1)
-        @test test_construction(GVFArgs, rand(3), rand(3))
-        @test test_construction(GVFArgs, rand(3))
+    @testset "GVF Tests" begin
+        @testset "GVF" begin
+            @test test_construction(GVF, FeatureCumulant(1), ConstantDiscount(0.9), NullPolicy())
+        end
+
+        @testset "PredictionGVF" begin
+            # GVF builds
+            @test test_construction(PredictionGVF, FeatureCumulant(1), ConstantDiscount(0.9), NullPolicy())
+            @test test_construction(PredictionGVF, FeatureCumulant(1), ConstantDiscount(0.9))
+
+            # GVF returns the right thing
+            gvf = PredictionGVF(FeatureCumulant(2), ConstantDiscount(0.78), NullPolicy())
+            @test all(get(gvf, [1,2,3]) .== [2, 0.78, 1.0])
+            @test all(get(gvf, [5,5,5], 1, [1,2,3], 2, [0.1,0.2,0.3]) .== [2, 0.78, 1.0])
+        end
     end
 
     @testset "Discount Tests" begin
@@ -48,8 +56,8 @@ function gvf_tests()
             @test test_construction(ConstantDiscount, exp(complex(0.0, 0.5)))
 
             # discount returns the correct value
-            @test get(ConstantDiscount(0.9), GVFArgs()) == 0.9
-            @test get(ConstantDiscount(exp(complex(0.0, 0.5))), GVFArgs()) == exp(complex(0.0, 0.5))
+            @test get(ConstantDiscount(0.9)) == 0.9
+            @test get(ConstantDiscount(exp(complex(0.0, 0.5)))) == exp(complex(0.0, 0.5))
         end
     end
 
@@ -59,7 +67,7 @@ function gvf_tests()
             @test test_construction(FeatureCumulant, 1)
 
             # cumulant returns correct value
-            @test get(FeatureCumulant(3), GVFArgs([1 2 3])) == 3
+            @test get(FeatureCumulant(3), [1 2 3]) == 3
         end
     end
 
@@ -69,20 +77,7 @@ function gvf_tests()
             @test test_construction(NullPolicy)
 
             # policy returns the correct value
-            @test get(NullPolicy(), GVFArgs([1,2,3])) == 1.0
-        end
-    end
-
-    @testset "GVF Tests" begin
-
-        @testset "GVF" begin
-            # GVF builds
-            @test test_construction(GVF, FeatureCumulant(1), ConstantDiscount(0.9), NullPolicy())
-
-            # GVF returns the right thing
-            gvf = GVF(FeatureCumulant(2), ConstantDiscount(0.78), NullPolicy())
-            @test all(get(gvf, GVFArgs([1,2,3])) .== [2, 0.78, 1.0])
-            @test all(get(gvf, GVFArgs([5,5,5], 1, [1,2,3], 2, [0.1,0.2,0.3])) .== [2, 0.78, 1.0])
+            @test get(NullPolicy(), [1,2,3]) == 1.0
         end
     end
 end
