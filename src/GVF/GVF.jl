@@ -36,22 +36,5 @@ end
 get(gvf::GVF, state_t, action_t, state_tp1, preds_tilde) =
     get(gvf::GVF, state_t, action_t, state_tp1, nothing, preds_tilde)
 
-
-struct PredictionGVF{C<:AbstractCumulant, D<:AbstractDiscount} <: AbstractGVF
-    cumulant::C
-    discount::D
-    policy::NullPolicy
-end
-
-PredictionGVF(cumulant::AbstractCumulant, discount::AbstractDiscount) = PredictionGVF(cumulant, discount, NullPolicy())
-
-function get(gvf::PredictionGVF, state_tp1)
-    c = get(gvf.cumulant, state_tp1)
-    γ = get(gvf.discount)
-    π_prob = get(gvf.policy, state_tp1)
-    return c, γ, π_prob
-end
-
-get(gvf::PredictionGVF, state_t, action_t, state_tp1, action_tp1, preds_tilde) = get(gvf, state_tp1)
-
-
+get(gvf::GVF, state_t, action_t, state_tp1) =
+    get(gvf::GVF, state_t, action_t, state_tp1, nothing, nothing)
