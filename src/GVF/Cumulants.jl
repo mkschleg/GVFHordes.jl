@@ -9,7 +9,7 @@
 """
 abstract type AbstractCumulant <: AbstractParameterFunction end
 
-function get(cumulant::AbstractCumulant, state_t, action_t, state_tp1, action_tp1, preds_tilde)
+function get(cumulant::AbstractCumulant, state_t, action_t, state_tp1, action_tp1, preds_tp1)
     throw(DomainError("get(CumulantType, args...) not defined!"))
 end
 
@@ -23,4 +23,4 @@ struct FeatureCumulant <: AbstractCumulant
     idx::Int
 end
 
-get(cumulant::FeatureCumulant, state_t, action_t, state_tp1, action_tp1, preds_tilde) = state_tp1[cumulant.idx]
+get(cumulant::FeatureCumulant, state_t, action_t, state_tp1, action_tp1, preds_tp1) = state_tp1[cumulant.idx]
