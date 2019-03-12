@@ -1,9 +1,10 @@
 module Horde
+import Base.get
 
 export GVF, GVFHorde, get_parameters, get,
     FeatureCumulant, ConstantDiscount, NullPolicy
-include("GVF/GVF.jl")
 
+include("GVF/GVF.jl")
 
 abstract type AbstractHorde end
 
@@ -36,3 +37,4 @@ end
 
 
 end # module
+
