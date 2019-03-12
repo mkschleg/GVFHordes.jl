@@ -1,13 +1,13 @@
 module Horde
 
-export GVF, GVFHorde, GVFHorde_matt, get_parameters, get,
+export GVF, GVFHorde, get_parameters, get,
     FeatureCumulant, ConstantDiscount, NullPolicy
 include("GVF/GVF.jl")
 
 
 abstract type AbstractHorde end
 
-# Andrew's Implementation
+# Previous Implementation
 # struct GVFHorde{C<:AbstractCumulant, D<:AbstractDiscount, P<:AbstractPolicy} <: AbstractHorde
 #     cumulants::Vector{C}
 #     discounts::Vector{D}

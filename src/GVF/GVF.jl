@@ -18,10 +18,10 @@ include("Policies.jl")
 
 abstract type AbstractGVF end
 
-function get(gvf::AbstractGVF, state_t, action_t, state_tp1, action_tp1, preds_tilde) end
+function get(gvf::AbstractGVF, state_t, action_t, state_tp1, action_tp1, preds_tp1) end
 
-get(gvf::AbstractGVF, state_t, action_t, state_tp1, preds_tilde) =
-    get(gvf::AbstractGVF, state_t, action_t, state_tp1, nothing, preds_tilde)
+get(gvf::AbstractGVF, state_t, action_t, state_tp1, preds_tp1) =
+    get(gvf::AbstractGVF, state_t, action_t, state_tp1, nothing, preds_tp1)
 
 get(gvf::AbstractGVF, state_t, action_t, state_tp1) =
     get(gvf::AbstractGVF, state_t, action_t, state_tp1, nothing, nothing)
@@ -40,10 +40,10 @@ cumulant(gvf::GVF) = gvf.cumulant
 discount(gvf::GVF) = gvf.discount
 policy(gvf::GVF) = gvf.policy
 
-function get(gvf::GVF, state_t, action_t, state_tp1, action_tp1, preds_tilde)
-    c = get(gvf.cumulant, state_t, action_t, state_tp1, action_tp1, preds_tilde)
-    γ = get(gvf.discount, state_t, action_t, state_tp1, action_tp1, preds_tilde)
-    π_prob = get(gvf.policy, state_t, action_t, state_tp1, action_tp1, preds_tilde)
+function get(gvf::GVF, state_t, action_t, state_tp1, action_tp1, preds_tp1)
+    c = get(gvf.cumulant, state_t, action_t, state_tp1, action_tp1, preds_tp1)
+    γ = get(gvf.discount, state_t, action_t, state_tp1, action_tp1, preds_tp1)
+    π_prob = get(gvf.policy, state_t, action_t, state_tp1, action_tp1, preds_tp1)
     return c, γ, π_prob
 end
 

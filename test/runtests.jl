@@ -43,6 +43,12 @@ function gvf_tests()
             @test all(get(gvf, [5,5,5], 1, [1,2,3], 2, [0.1,0.2,0.3]) .== [2, 0.78, 1.0])
         end
         # Previous implementation.
+        
+    end
+end
+
+function horde_tests()
+    @testset "Horde Tests" begin
         # @testset "GVFHorde" begin
         #     @test test_construction(GVFHorde, [FeatureCumulant(1), FeatureCumulant(2)],
         #                             [ConstantDiscount(0.9), ConstantDiscount(0.8)],
@@ -63,6 +69,10 @@ function gvf_tests()
             @test all(get(gvfc, [5,5,5], 1, [1,2,3], nothing, nothing) .== [[1,2],[0.9, 0.8], [1.0, 1.0]])
         end
     end
+
 end
 
-gvf_tests()
+@testset "Horde.jl Tests:" begin
+    gvf_tests()
+    horde_tests()
+end
