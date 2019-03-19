@@ -8,8 +8,9 @@ include("GVF/GVF.jl")
 
 abstract type AbstractHorde end
 
-struct GVFHorde{T<:AbstractGVF} <: AbstractHorde
+struct GVFHorde{T<:AbstractGVF, F} <: AbstractHorde
     gvfs::Vector{T}
+    model::F
 end
 
 function get(gvfh::GVFHorde, state_t, action_t, state_tp1, action_tp1, preds_tp1)
@@ -19,6 +20,7 @@ function get(gvfh::GVFHorde, state_t, action_t, state_tp1, action_tp1, preds_tp1
     return C, Γ, Π_probs
 end
 
+(gvfHorde::GVFHorde)(state) = gvfHorde.model(state)
 
 
 end # module

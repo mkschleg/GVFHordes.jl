@@ -1,6 +1,7 @@
 
 using Test
 using Horde
+using Flux
 # using BenchmarkTools
 
 function example_test()
@@ -52,10 +53,10 @@ function horde_tests()
         @testset "GVFHorde" begin
             @test test_construction(GVFHorde,
                                     [GVF(FeatureCumulant(1), ConstantDiscount(0.9), NullPolicy()),
-                                     GVF(FeatureCumulant(2), ConstantDiscount(0.8), NullPolicy())])
+                                     GVF(FeatureCumulant(2), ConstantDiscount(0.8), NullPolicy())], Flux.Dense(1,2))
 
             gvfc = GVFHorde([GVF(FeatureCumulant(1), ConstantDiscount(0.9), NullPolicy()),
-                             GVF(FeatureCumulant(2), ConstantDiscount(0.8), NullPolicy())])
+                             GVF(FeatureCumulant(2), ConstantDiscount(0.8), NullPolicy())], Flux.Dense(1,2))
             @test all(get(gvfc, [5,5,5], 1, [1,2,3], nothing, nothing) .== [[1,2],[0.9, 0.8], [1.0, 1.0]])
         end
     end
