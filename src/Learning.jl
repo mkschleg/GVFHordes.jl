@@ -1,71 +1,94 @@
-
 using Flux
-# I'm not sure if it is useful to actually have this abstract type explicitly defined.
-# abstract type AbstractLearningUpdate end
-# function train!(model, opt, lu::AbstractLearningUpdate, args...) end
 
-mutable struct Linear{A}
-    Wi::A
-    Linear(in, out; init=Flux.zeros) = new(param(init(out, in)))
+
+# handy loss functions
+
+tderror(v_t, c, γ_tp1, ṽ_tp1) = @. c + γ_tp1 * ṽ_tp1 - v_t
+tdloss(v_t, c, γ_tp1, ṽ_tp1) = Flux.mse(c .+ γ_tp1.*ṽ_tp1, v_t)
+
+
+mutable struct Linear{A, V}
+    W::A
+    b::V
 end
 
-(layer::Linear)(x) = (layer.Wi*x)
+Linear(in::Integer, out::Integer; init=Flux.zeros) =
+    Linear(init(out, in), Flux.zeros(out))
 
-# maybe implement forward and backward...
+Linear(x) = W*x + b
 
-struct TD #<: AbstractLearningUpdate
+struct TD
 end
+
+function train!(model::Linear, opt, lu::TD, state_t, state_tp1, c, γ_tp1, ρ; prms=nothing)
+
+    v_t = model(state_t)
+    v_tp1 = model(state_tp1)
+
+    # TODO: Aggressively optimized code goes here.
+    δ = tderror(v_t, c, γ_tp1, v_tp1)
+    weights .+= (α.*δ)*state_t'
+
+end
+
+function train!(model, opt, lu::TD, state_t, state_tp1, c, γ_tp1, ρ; prms=nothing)
+    if prms == nothing
+        prms = params(model)
+    end
+    grads = Flux.gradient(()->tdloss(model(state_t), c, γ_tp1, Flux.data(model(state_tp1))), prms)
+    for p in prms
+        Flux.update!(opt, p, grads[p])
+    end
+end
+
 
 function train!(model, horde::AbstractHorde, opt, lu::TD, state_t, action_t, state_tp1, action_tp1)
-
     preds_tilde = Flux.data(model(state_tp1))
     c, γ, π_prob = get(horde, state_t, action_t, state_tp1, action_tp1)
-
-    δ = c + γ.*preds_tilde - model(state_t)
-    Δθ = Flux.gradient(()->mean(δ.^2), params(model))
-
-    Flux.update!(opt, params(model), Δθ)
-
+    train!(model, opt, lu, state_t, state_tp1, c, γ_tp1, ρ; prms=nothing)
 end
+
 
 struct TDLambda #<: AbstractLearningUpdate
     λ::Float64
     traces::IdDict
+    γ_t::IdDict
+    TDLambda(λ) = new(λ, traces)
 end
 
-function train!(model::Linear, horde::AbstractHorde, opt, lu::TDLambda, state_t, action_t, state_tp1, action_tp1)
+function train!(model, opt, lu::TD, state_t, state_tp1, c, γ_tp1, ρ; prms=nothing)
 
-    preds_tilde = Flux.data(model(state_tp1))
-    c, γ, π_prob = get(horde, state_t, action_t, state_tp1, action_tp1, preds_tilde)
+    if prms == nothing
+        prms = params(model)
+    end
 
-    δ = c + γ.*preds_tilde - model(state_t)
-    grads = Flux.gradient(()->sum(δ), params(model)) # this doesn't really work for a neural network.
+    v_t = model(state_t)
+    v_tp1 = model(state_tp1)
 
-    traces = get!(lu.traces, model, zeros(typeof(model.Wi[1]), size(model.Wi)...))::Array{typeof(model.Wi[1]), 2}
-    traces .= convert(Array{Float64, 2}, Diagonal(discounts)) * λ * traces - grads[model.Wi]
+    γ_t = get!(lu.γ_t, model, zero(γ_tp1))::Array{Float64, 1}
 
-    Flux.update!(opt, params(model), traces.*δ)
+    δ = tderror(v_t, c, γ_tp1, Flux.data(v_tp1))
 
+    # Hack to get gradients working without jacobian... I.E. for single layer
+    grads = gradient(()->sum(δ), params(model))
+
+    for weights in prms
+        e = get!(lu.traces, weights, zeros(weights))::typeof(Flux.data(weights))
+        e .= convert(Array{Float64, 2}, Diagonal(γ_t)) * λ * e - grads[weights].data
+        Flux.Tracker.update!(opt, weights, e.*(δ))
+    end
+
+    γ_t .= γ_tp1
 end
 
+# Force to be a single layer only!
+function train!(model, horde::AbstractHorde, opt, lu::TDLambda, state_t, action_t, state_tp1, action_tp1; prms=nothing)
 
-struct OnlineRTD{S, A}
-    #should RTD take care of states and actions? -> NO, but maybe an online variant can...
-    τ::UInt64
-    states::Array{S}
-    actions::Array{A}
-end
+    preds_t = model(state_t)
+    preds_tp1 = Flux.data(preds[end])
+    cumulants, discounts, ρ = get_question_parameters(gvfn.cell, state_t, action_t, state_tp1, action_tp1, preds_tilde)
 
-function train!(model::Flux.Recur{T}, horde::AbstractHorde, opt, lu::RTD, states, actions)
-
-end
-
-
-struct RTD
-#should RTD take care of states and actions? -> NO, but maybe an online variant can...
-end
-
-function train!(model::Flux.Recur{T}, horde::AbstractHorde, opt, lu::RTD, states, actions)
+    train!(model, opt, lu::TD, state_t, state_tp1, c, γ_tp1, ρ; prms=prms)
 
 end
 

@@ -1,6 +1,7 @@
 
 
 using Flux
+using Flux.Tracker
 
 
 function jacobian(δ, pms)
@@ -29,5 +30,10 @@ function jacobian!(J::IdDict, δ::TrackedArray, pms::Params)
     end
 end
 
+
+struct StopGradient{T}
+    cell::T
+end
+(layer::StopGradient)(x) = Flux.data(layer.cell(x))
 
 
