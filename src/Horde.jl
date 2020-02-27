@@ -1,4 +1,4 @@
-module Horde
+module Hordes
 
 include("GVF/GVF.jl")
 export GVF
