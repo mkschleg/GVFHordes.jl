@@ -1,1 +1,0 @@
-abstract type AbstractDiscount end
